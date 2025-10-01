@@ -89,12 +89,27 @@ curl -H "X-MCP-Proxy-Auth: Bearer <your-token>" http://localhost:6277/config
 ## Развертывание в Coolify
 
 1. Создайте новый проект в Coolify
-2. Подключите этот репозиторий
+2. Подключите этот репозиторий: `git@github.com-personal:jekakos/mcp-inspector.git`
 3. Укажите `Dockerfile.custom` как Dockerfile
 4. Настройте порты:
-   - 3000 (клиент)
-   - 6277 (сервер)
-5. Запустите развертывание
+   - 3000 (клиент) - основной порт для доступа
+   - 6277 (сервер) - внутренний API порт
+5. Настройте переменные окружения:
+   - `DOMAIN=your-domain.com` (например: `mcp-inspector.ekosivtsov.com`)
+   - `PROTOCOL=https` (для HTTPS)
+   - `CLIENT_PORT=3000`
+   - `SERVER_PORT=6277`
+6. Запустите развертывание
+
+### Пример настроек для Coolify:
+- **Домен**: `mcp-inspector.ekosivtsov.com`
+- **Переменные окружения**:
+  ```
+  DOMAIN=mcp-inspector.ekosivtsov.com
+  PROTOCOL=https
+  CLIENT_PORT=3000
+  SERVER_PORT=6277
+  ```
 
 ## Логи
 

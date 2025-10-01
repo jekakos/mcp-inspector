@@ -5,9 +5,11 @@
 
 set -e
 
-# Default ports
+# Default ports and domain
 CLIENT_PORT=${CLIENT_PORT:-3000}
 SERVER_PORT=${SERVER_PORT:-6277}
+DOMAIN=${DOMAIN:-localhost}
+PROTOCOL=${PROTOCOL:-http}
 
 # Generate session token if not provided
 if [ -z "$MCP_PROXY_AUTH_TOKEN" ]; then
@@ -35,6 +37,7 @@ cd /app/server
 export SERVER_PORT=$SERVER_PORT
 export CLIENT_PORT=$CLIENT_PORT
 export MCP_PROXY_AUTH_TOKEN=$MCP_PROXY_AUTH_TOKEN
+export HOST=0.0.0.0
 node build/index.js &
 SERVER_PID=$!
 
@@ -71,6 +74,8 @@ export CLIENT_PORT=$CLIENT_PORT
 export SERVER_PORT=$SERVER_PORT
 export MCP_PROXY_AUTH_TOKEN=$MCP_PROXY_AUTH_TOKEN
 export MCP_PROXY_PORT=$SERVER_PORT
+export HOST=0.0.0.0
+export INSPECTOR_URL="${PROTOCOL}://${DOMAIN}"
 node bin/client.js &
 CLIENT_PID=$!
 
@@ -101,13 +106,13 @@ for i in {1..10}; do
 done
 
 echo "✅ MCP Inspector is running!"
-echo "🌐 Access the client at: http://localhost:$CLIENT_PORT"
-echo "📡 Server API available at: http://localhost:$SERVER_PORT"
+echo "🌐 Access the client at: ${PROTOCOL}://${DOMAIN}"
+echo "📡 Server API available at: ${PROTOCOL}://${DOMAIN}:${SERVER_PORT}"
 echo "🔐 Auth token: $MCP_PROXY_AUTH_TOKEN"
 echo ""
 echo "💡 The auth token is automatically configured for the client."
 echo "   If you need to access the server directly, use:"
-echo "   curl -H 'X-MCP-Proxy-Auth: Bearer $MCP_PROXY_AUTH_TOKEN' http://localhost:$SERVER_PORT/config"
+echo "   curl -H 'X-MCP-Proxy-Auth: Bearer $MCP_PROXY_AUTH_TOKEN' ${PROTOCOL}://${DOMAIN}:${SERVER_PORT}/config"
 
 # Wait for both processes
 wait $SERVER_PID $CLIENT_PID

@@ -54,6 +54,9 @@ RUN chmod +x start-inspector.sh
 # Set default port values as environment variables
 ENV CLIENT_PORT=3000
 ENV SERVER_PORT=6277
+ENV HOST=0.0.0.0
+ENV DOMAIN=localhost
+ENV PROTOCOL=http
 
 # Document which ports the application uses
 EXPOSE ${CLIENT_PORT} ${SERVER_PORT}
