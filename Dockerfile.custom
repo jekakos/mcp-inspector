@@ -1,0 +1,67 @@
+# Custom Dockerfile for MCP Inspector
+# Runs both server and client on a single instance
+
+# Build stage
+FROM node:24-slim AS builder
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files for installation
+COPY package*.json ./
+COPY .npmrc ./
+COPY client/package*.json ./client/
+COPY server/package*.json ./server/
+COPY cli/package*.json ./cli/
+
+# Install dependencies
+RUN npm ci --ignore-scripts
+
+# Copy source files
+COPY . .
+
+# Build the application
+RUN npm run build
+
+# Production stage
+FROM node:24-slim
+
+# Install openssl for token generation
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy package files for production
+COPY package*.json ./
+COPY .npmrc ./
+COPY client/package*.json ./client/
+COPY server/package*.json ./server/
+COPY cli/package*.json ./cli/
+
+# Install only production dependencies
+RUN npm ci --omit=dev --ignore-scripts
+
+# Copy built files from builder stage
+COPY --from=builder /app/client/dist ./client/dist
+COPY --from=builder /app/client/bin ./client/bin
+COPY --from=builder /app/server/build ./server/build
+COPY --from=builder /app/cli/build ./cli/build
+
+# Copy startup script
+COPY start-inspector.sh ./
+RUN chmod +x start-inspector.sh
+
+# Set default port values as environment variables
+ENV CLIENT_PORT=3000
+ENV SERVER_PORT=6277
+
+# Document which ports the application uses
+EXPOSE ${CLIENT_PORT} ${SERVER_PORT}
+
+# Health check using netcat
+RUN apt-get update && apt-get install -y netcat-openbsd && rm -rf /var/lib/apt/lists/*
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+  CMD nc -z localhost ${CLIENT_PORT} || exit 1
+
+# Use the custom startup script
+CMD ["./start-inspector.sh"]
